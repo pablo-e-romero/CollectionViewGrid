@@ -47,46 +47,75 @@ class ImagesViewController: UIViewController {
     }
     
     private func createSection(layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection {
-        // Calculate item size proportionally to screen width
-        // As screen size increases, cell size increases proportionally
-//        let columns: Int = 4
-//        let spacing: CGFloat = 16
-//        let containerWidth = layoutEnvironment.container.effectiveContentSize.width
-//        let totalSpacing = spacing * CGFloat(columns + 1)
-//        let itemWidth = (containerWidth - totalSpacing) / CGFloat(columns)
+        func makeCalculationsStrategy(layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection {
+            // Calculate item size proportionally to screen width
+            // As screen size increases, cell size increases proportionally
+            let columns: Int = 4
+            let spacing: CGFloat = 16
+            let containerWidth = layoutEnvironment.container.effectiveContentSize.width
+            let totalSpacing = spacing * CGFloat(columns + 1)
+            let itemWidth = (containerWidth - totalSpacing) / CGFloat(columns)
+            
+            let itemSize = NSCollectionLayoutSize(
+                widthDimension: .absolute(itemWidth),
+                heightDimension: .absolute(itemWidth)
+            )
+            
+            let item = NSCollectionLayoutItem(layoutSize: itemSize)
+            
+            // Group
+            let groupSize = NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1.0),
+                heightDimension: .absolute(itemWidth)
+            )
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+            group.interItemSpacing = .fixed(spacing)
+            
+            // Section
+            let section = NSCollectionLayoutSection(group: group)
+            section.interGroupSpacing = spacing
+            section.contentInsets = NSDirectionalEdgeInsets(
+                top: spacing,
+                leading: spacing,
+                bottom: spacing,
+                trailing: spacing
+            )
+            
+            return section
+        }
         
-        // Item
-//        let itemSize = NSCollectionLayoutSize(
-//            widthDimension: .absolute(itemWidth),
-//            heightDimension: .absolute(itemWidth)
-//        )
+        func useFractionalStrategy(layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection {
+            let spacing: CGFloat = 16
+            let itemSize = NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(0.25),
+                heightDimension: .fractionalWidth(0.25)
+            )
+            
+            let item = NSCollectionLayoutItem(layoutSize: itemSize)
+            
+            // Group
+            let groupSize = NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1.0),
+                heightDimension: .fractionalWidth(0.25)
+            )
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+            group.interItemSpacing = .fixed(spacing)
+            
+            // Section
+            let section = NSCollectionLayoutSection(group: group)
+            section.interGroupSpacing = spacing
+            section.contentInsets = NSDirectionalEdgeInsets(
+                top: spacing,
+                leading: spacing,
+                bottom: spacing,
+                trailing: spacing
+            )
+            
+            return section
+        }
         
-        let itemSize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(0.25),
-            heightDimension: .fractionalWidth(0.25)
-        )
-        
-        let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        
-        // Group
-        let groupSize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(1.0),
-            heightDimension: .absolute(itemWidth)
-        )
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-        group.interItemSpacing = .fixed(spacing)
-        
-        // Section
-        let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = spacing
-        section.contentInsets = NSDirectionalEdgeInsets(
-            top: spacing,
-            leading: spacing,
-            bottom: spacing,
-            trailing: spacing
-        )
-        
-        return section
+//        return useFractionalStrategy(layoutEnvironment: layoutEnvironment)
+        return makeCalculationsStrategy(layoutEnvironment: layoutEnvironment)
     }
     
     private func setupDataSource() {
