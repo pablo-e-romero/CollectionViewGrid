@@ -16,11 +16,14 @@ class ImagesViewController: UIViewController {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout())
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = .systemBackground
-        collectionView.register(ImageCollectionViewCell.self, forCellWithReuseIdentifier: ImageCollectionViewCell.identifier)
+        collectionView.allowsSelection = true
+        collectionView.allowsMultipleSelection = false
+        collectionView.register(ImageCell.self, forCellWithReuseIdentifier: ImageCell.identifier)
         return collectionView
     }() 
     private var dataSource: UICollectionViewDiffableDataSource<Section, ImageItem>!
     private let viewModel = ImagesViewModel()
+    private var selectedItem: ImageItem?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,6 +34,7 @@ class ImagesViewController: UIViewController {
     
     private func setupCollectionView() {
         view.addSubview(collectionView)
+        collectionView.delegate = self
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: view.topAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -121,12 +125,17 @@ class ImagesViewController: UIViewController {
     private func setupDataSource() {
         dataSource = UICollectionViewDiffableDataSource<Section, ImageItem>(
             collectionView: collectionView
-        ) { collectionView, indexPath, item in
+        ) { [weak self] collectionView, indexPath, item in
             let cell = collectionView.dequeueReusableCell(
-                withReuseIdentifier: ImageCollectionViewCell.identifier,
+                withReuseIdentifier: ImageCell.identifier,
                 for: indexPath
-            ) as! ImageCollectionViewCell
+            ) as! ImageCell
             cell.configure(with: item.imageName)
+            
+            // Update selection state
+            let isSelected = self?.selectedItem?.id == item.id
+            cell.setSelected(isSelected ?? false, animated: false)
+            
             return cell
         }
     }
@@ -153,6 +162,36 @@ class ImagesViewController: UIViewController {
         if traitCollection.horizontalSizeClass != previousTraitCollection?.horizontalSizeClass {
             applySnapshot()
             collectionView.collectionViewLayout.invalidateLayout()
+        }
+    }
+}
+
+// MARK: - UICollectionViewDelegate
+extension ImagesViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
+        
+        // Deselect previous item
+        if let previousItem = selectedItem,
+           let previousIndexPath = dataSource.indexPath(for: previousItem),
+           let previousCell = collectionView.cellForItem(at: previousIndexPath) as? ImageCell {
+            previousCell.setSelected(false, animated: true)
+        }
+        
+        // Select new item
+        selectedItem = item
+        if let cell = collectionView.cellForItem(at: indexPath) as? ImageCell {
+            cell.setSelected(true, animated: true)
+        }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+        if let cell = collectionView.cellForItem(at: indexPath) as? ImageCell {
+            cell.setSelected(false, animated: true)
+        }
+        if let item = dataSource.itemIdentifier(for: indexPath),
+           selectedItem?.id == item.id {
+            selectedItem = nil
         }
     }
 }
