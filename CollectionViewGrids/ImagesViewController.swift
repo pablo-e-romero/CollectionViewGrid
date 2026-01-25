@@ -20,7 +20,8 @@ class ImagesViewController: UIViewController {
         collectionView.allowsMultipleSelection = false
         collectionView.register(ImageCell.self, forCellWithReuseIdentifier: ImageCell.identifier)
         return collectionView
-    }() 
+    }()
+    
     private var dataSource: UICollectionViewDiffableDataSource<Section, ImageItem>!
     private let viewModel = ImagesViewModel()
     private var selectedItem: ImageItem?
@@ -44,6 +45,18 @@ class ImagesViewController: UIViewController {
     }
     
     private func createLayout() -> UICollectionViewLayout {
+        createSectionBasedLayout()
+    }
+    
+    private func createVerticalFlowLayout() -> UICollectionViewLayout {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        layout.sectionInset = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
+        layout.itemSize = CGSize(width: 30, height: 30)
+        return layout
+    }
+    
+    private func createSectionBasedLayout() -> UICollectionViewLayout {
         let layout = UICollectionViewCompositionalLayout { [weak self] sectionIndex, layoutEnvironment in
             return self?.createSection(layoutEnvironment: layoutEnvironment)
         }
@@ -90,12 +103,14 @@ class ImagesViewController: UIViewController {
         
         func useFractionalStrategy(layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection {
             let spacing: CGFloat = 16
-            let itemSize = NSCollectionLayoutSize(
-                widthDimension: .fractionalWidth(0.25),
-                heightDimension: .fractionalWidth(0.25)
-            )
             
-            let item = NSCollectionLayoutItem(layoutSize: itemSize)
+            let item = NSCollectionLayoutItem(
+                layoutSize:
+                    NSCollectionLayoutSize(
+                        widthDimension: .fractionalWidth(0.25),
+                        heightDimension: .fractionalHeight(1)
+                    )
+            )
             
             // Group
             let groupSize = NSCollectionLayoutSize(
