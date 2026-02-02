@@ -149,7 +149,7 @@ class ImagesViewController: UIViewController {
             
             // Update selection state
             let isSelected = self?.selectedItem?.id == item.id
-            cell.setSelected(isSelected ?? false, animated: false)
+            cell.setSelected(isSelected, animated: false)
             
             return cell
         }
